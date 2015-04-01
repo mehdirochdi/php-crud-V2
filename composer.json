@@ -1,0 +1,16 @@
+{
+    "name": "mehdirochdi/pdo-crud",
+    "description": "This class provides a common method of performing simple CRUD operations on any database supported by PHP PDO",
+    "license": "GNU",
+    "authors": [
+        {
+            "name": "Mehdi Rochdi",
+            "email": "mehdi.rochdi@gmail.com"
+        }
+    ],
+    "autoload":{
+
+        "psr-4" : {"oop\\" : "oop"}
+    }
+
+}
