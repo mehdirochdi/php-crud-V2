@@ -8,7 +8,7 @@ if(PHP_OS == 'WINNT'){
 			"db_user" => "root",
 			"db_pass" => "",
 			"db_host" => "localhost",
-			"db_name" => "marocfitness_db",
+			"db_name" => "crud_v2_db",
 		);
 
 } else{
