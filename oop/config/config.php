@@ -1,4 +1,6 @@
 <?php
+/**check local environment
+=======================================*/
 
 if(PHP_OS == 'WINNT'){
 
@@ -6,7 +8,7 @@ if(PHP_OS == 'WINNT'){
 			"db_user" => "root",
 			"db_pass" => "",
 			"db_host" => "localhost",
-			"db_name" => "crud_v2_db",
+			"db_name" => "marocfitness_db",
 		);
 
 } else{

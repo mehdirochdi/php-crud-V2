@@ -1,149 +1,314 @@
-PHP Crud Class V2
+PHP CRUD PDO-V2
 =============
-by Mehdi rochdi
+PHP CRUD Lib 2.0 - 9 April 2015
 
-Class Crud extends PDO . working for MySQL. It uses PDO driver.
+By Mehdi Rochdi
 
-This is a class of CRUD (Creat, Read, Update and Delete) you guessed it,
-it's interraction with your mysql database, with easy methods inspire since framworks.
+PHP Class/MySQL use, create, all, update and delete and other functions. It uses PDO driver
+it's capable to interacting with your mysql database, with easy methods inspire since framworks (cakePHP).
+you can integrate into you OOP architecture
 
-### Setup
+### Installation
 -----------------
 
-##### Initialize Data base connection . (Crud.class.php)
+Clone the repository
+	
+	git clone https://github.com/mehdirochdi/php-crud-V2.git
+
+Download composer:
+
+	curl -sS https://getcomposer.org/installer | php
+
+Install vendors:
+
+    php composer.phar install
+
+### How Using The Class
+-----------------
+You will need to change some variable in config.php, for your own Database local and a distance
+
 ```php
-define("DATA_BASE", "your dbname"); // DATA NAME
-define("USER", "username");   // USER
-define("PASSWORD", "password");  // PASSWORD
+"db_host" => "localhost", // change as required
+"db_user" => "username",  // change as required
+"db_pass" => "password",  // change as required
+"db_name" => "database_name", // change as required
+
 ```
+Test Mysql
 
-### Getting Started
------------------
+Start by creating test table in your Database
 
-##### Create index.php file . (index.php)
 ```php
-require 'lib/Crud.class.php';
+CREATE TABLE IF NOT EXISTS `authors` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `emails` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+INSERT INTO posts VALUES('', 'Name 1', 'name 1@email.com');
+INSERT INTO posts VALUES('', 'Name 2', 'name 2@email.com');
+INSERT INTO posts VALUES('', 'Name 3', 'name 3@email.com');
+INSERT INTO posts VALUES('', 'Name', 'name 4@email.com');
+
 ```
 
 ### Examples
 -----------------
+###### Insert exemple
 
 ```php
 <?php
-	//ADDING DATA
-	$datas = $db->save(array(
-		'table'    => 'table_name',
-		'fields1'  => 'value1',
-		'fields2'  => 'value2',
-		'fields3'  => 'value3'
-		)
-	);
-	if($datas !==FALSE){
-		echo "data success"; // data is added successfully
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+
+$response = $db->create([
+	
+	'name' => 'Name 5',
+	'email' => 'name 5@email.com',
+]);
+
+echo 'ID : '.$db->lastInsertId(); // Last insert ID
+var_dump($response);
+?>
+```
+##### Select Data with a function read(bool $tinyint, int $numberOfPage, array $order)
+
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+$response = $db->all();
+var_dump($response);
+
+?>
+```
+######Use function all() with only option (order)
+
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+$response = $db->all([
+	'order' => ['id' => 'DESC']
+]);
+var_dump($response);
+
+?>
+```
+######Use function all() for Pagination exemple
+
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+$response = $db->read(true,4, [
+		'order' => ['id' => 'DESC']
+]);
+echo 'The count of row for each page is : '.$db->rowCount().'<br/>';
+echo 'The total count of rows is : '.$db->countStatement;
+var_dump($response);
+
+// Display Pagination
+for($i=1; $i<=$db->_paginate_number; $i++){
+
+	if($i == $db->_paginate_currentPage){
+
+		echo ' / '.$i;
+
+	}else{
+
+		echo ' / <a href="index.php?page='.$i.'">'.$i.'</a>';
+
 	}
-
-	// Get last insert ID
-	echo $db->getLastId();
+}
 ?>
 ```
-##### Update data.
+######For more possibilities you can use function find() or findById(int $id, string $fetch_mode)
+######you can choice your favorite fetch mode ('num', 'both', 'assoc', 'obj')
+
 ```php
 <?php
-	//Updating DATA
-	$update = $db->save(array(
-		'table'  => 'table_name',
-		'id'  => 1, // you need to pass a id (int)
-		'fields1' => 'value1'
-		)
-	);
-	if($update !==FALSE){
-		echo "successfully updated data"; // data is updated successfully
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+$response->$db->findById(1, 'obj'); // num || both || assoc || obj 
+var_dump($response);
+
+?>
+```
+######for advanced requirements, use 
+######find(string $genre, array $params, array $attribute, string fetch_mode, int $numberOfPage)
+
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+$response->$db->find('all', [
+'fields'     => ['name', 'emails'],
+'conditions' => ['id' => '?'],
+'order' => ['id' => 'DESC']
+], ['2']);
+var_dump($response);
+
+?>
+```
+##### Joins exemple with function find()
+
+######start by Another table in your Database
+
+```php
+CREATE TABLE IF NOT EXISTS `posts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `author_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `is_actived` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+INSERT INTO posts VALUES('', 1, 'Post name 1', 'my description for post 1');
+INSERT INTO posts VALUES('', 1, 'Post name 1', 'my description for post 2');
+INSERT INTO posts VALUES('', 1, 'Post name 1', 'my description for post 3');
+INSERT INTO posts VALUES('', 2, 'Post name 1', 'my description for post 4');
+INSERT INTO posts VALUES('', 2, 'Post name 1', 'my description for post 5');
+INSERT INTO posts VALUES('', 2, 'Post name 1', 'my description for post 6');
+INSERT INTO posts VALUES('', 1, 'Post name 1', 'my description for post 7');
+INSERT INTO posts VALUES('', 1, 'Post name 1', 'my description for post 8');
+
+```
+######after use the function find() to select rows using a join in the database
+
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$response = $db->find('all', [
+		'table'      => ['posts' => 'pos'],
+		'fields'     => ['pos.id', 'pos.title','pos.description', 'auth.name '],
+		'joins'      => [
+						'tables'    => ['authors'],
+						'alias'     => ['auth'],
+						'type'      => ['LEFT'],
+						'condition' => ['auth.id' => 'pos.author_id']
+		],
+		'conditions' => ['author_id' => '?'],
+		'order' => ['pos.id' => 'DESC']
+	], ['1']
+);
+echo 'The count of row for each page is : '.$db->rowCount();
+var_dump($response);
+
+?>
+```
+######Pagination exemple with Find();
+
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$response = $db->find('pagination', [
+		'table'      => ['posts' => 'pos'],
+		'fields'     => ['pos.id', 'pos.title','pos.description', 'auth.name '],
+		'joins'      => [
+						'tables'    => ['authors'],
+						'alias'     => ['auth'],
+						'type'      => ['LEFT'],
+						'condition' => ['auth.id' => 'pos.author_id']
+		],
+		'order' => ['pos.id' => 'DESC']
+	]
+);
+
+echo 'The count of row for each page is : '.$db->rowCount().'<br/>';
+echo 'The total count of rows is : '.$db->countStatement;
+var_dump($response);
+
+// Display Pagination
+for($i=1; $i<=$db->_paginate_number; $i++){
+
+	if($i == $db->_paginate_currentPage){
+
+		echo ' / '.$i;
+
+	}else{
+
+		echo ' / <a href="index.php?page='.$i.'">'.$i.'</a>';
+
 	}
-?>
-```
-##### Delete data with 3 functions ( delete(), deleteById() and deleteAll() )
-```php
-<?php
-	//deleting with delete()
-	$delete = $db->delete(array(
-		'table' => 'table_name',
-		'id'    => 1 // int value
-		)
-	);
-	
-	//delelete By Id()
-	$db->table('table_Name'); // name of table 
-	$db->deleteById(1); // int value
-	
-	//delete all data
-	$db->table('table Name'); // name of table 
-	$db->deleteAll();
-?>
-```
-##### Read data with mutliple parameters, tables joins are accepted
-```php
-<?php
-	//Like SELECT * FROM table_name
-	$data1 = $db->find('all', array(
-		'table'  => 'table_name'
-		)
-	);
-	debug($data1);
-	
-	//Like SELECT * FROM table_name LIMIT 1
-	$data2 = $db->find('first', array(
-		'table'  => 'table_name'
-		)
-	);
-	debug($data2);
-	
-	//Like SELECT field2, field3 FROM table_name WHERE field1 = 'value'
-	$data3 = $db->find('all', array(
-		'table'      => 'table_name',
-		'fields'     => array('field2', 'field3'), // 
-		'conditions' => array('field3' => 'value') //
-		)
-	);
-	debug($data3);
-	
-	//Like SELECT field1, field2 FROM table_name ORDER BY field1 DESC
-	$data4 = $db->find('all', array(
-		'table'      => 'table_name',
-		'fields'     => array('field1', 'field2'),
-		'order' => array('field1' => 'desc') // descending
-		)
-	);
-	debug($data4);
-	
-	// 3 Tables Joins with different parameters
-	$data5 = $db->find('all', array(
-		'table' 	=> 'foreign_table',
-		'alias'  	=> 'ft',
-		'fields' 	=> array('ft.field1', 'pt1.field1', 'pt1.field2', 'pt2.field1'),
-		'joins'  	=> array(
-						'tables' 	=> array('primary_table1','primary_table1'),
-						'alias' 	=> array('pt1','pt2'),
-						'type'  	=> array('LEFT','LEFT'),
-						'condition' => array('pt1.key. = ft.key_primary_table1', 'pt2.key. = ft.key_primary_table2')
-			),
-		'conditions' => array('ft.key_primary_table1' => 'value')
-		)
-	);
-	//  SELECT ft.field1, pt1.field1, pt1.field2, pt2.field1 
-	//  FROM `foreign_table` AS `ft` 
-	//  LEFT JOIN `primary_table1` AS `pt1` ON pt1.key = ft.key_primary_table1 
-	//  LEFT JOIN `primary_table2` AS `pt2` ON pt2.key = ft.key_primary_table2  
-	//  WHERE ft.key_primary_table1 = 'value'
+}
 
-	debug($data5); 
 ?>
 ```
-##### if you want to write your own queries in SQL
+###### Update exemple
+
 ```php
 <?php
-$data = "SELECT * FROM table_name";
-debug($data);
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+
+$response = $db->update([
+		'fields' => [
+			'name' => 'My Name four',
+		],
+		'conditions' => ['id' => '?']
+], [4]);
+var_dump($response);
 ?>
 ```
 
+###### Delete exemple
 
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+
+$response = $db->deleteById(5);
+var_dump($response);
+?>
+```
+Delete with conditions
+
+```php
+<?php
+require 'vendor/autoload.php'; // Autoload
+use oop\Core\Table\Table;
+
+$db = new Table();
+$db->table = 'authors'; // Table name
+
+$response = $db->delete(['id' => 5]);
+var_dump($response);
+?>
+```
+### License
+
+The PHP CRUD is open-source licensed under the [GNU license](http://opensource.org/licenses/GPL-3.0).

@@ -1,4 +1,7 @@
 
 /vendor/
+index.php
+paginate.php
+test.php
 composer.json
 composer.phar
