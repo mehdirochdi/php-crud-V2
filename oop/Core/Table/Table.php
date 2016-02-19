@@ -555,7 +555,7 @@ class Table{
 
 	/**
 	 * counts the number of matches for each query called
-	 * @return array
+	 * @return int
 	 */
 	public function rowCount(){
 
